@@ -1,5 +1,6 @@
 OUTPUT := .output
 CLANG := clang-17
+CC := gcc
 LLVM_STRIP := llvm-strip-17
 LIBBPF_SRC := $(abspath ../lib/libbpf/src)
 LIBBPF_OBJ := $(abspath $(OUTPUT)/libbpf.a)
@@ -58,9 +59,24 @@ $(OUTPUT)/%.bpf.o: %.bpf.c $(LIBBPF_OBJ) $(wildcard %.h) $(VMLINUX) | $(OUTPUT)
 	$(Q)$(LLVM_STRIP) -g $@
 	$(Q)$(BPFTOOL) gen skeleton $@ > $(patsubst %.bpf.o,%.skel.h,$@)
 
+# Generate BPF skeletons
+$(OUTPUT)/%.skel.h: $(OUTPUT)/%.bpf.o | $(OUTPUT) 
+	$(call msg,GEN-SKEL,$@)
+	$(Q)$(BPFTOOL) gen skeleton $< > $@
 
-$(APPS): %: $(OUTPUT)/%.bpf.o $(LIBBPF_OBJ)
-	$(call msg, APPS, $@)
+# Build user-space code
+$(patsubst %,$(OUTPUT)/%.o,$(APPS)): %.o: %.skel.h
+
+$(OUTPUT)/%.o: %.c $(wildcard %.h) | $(OUTPUT)
+	$(call msg,CC,$@)
+	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $(filter %.c,$^) -o $@
+
+
+# Build application binary
+$(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) | $(OUTPUT)
+	$(call msg,BINARY,$@)
+	$(Q)$(CC) $(CFLAGS) $^ $(ALL_LDFLAGS) -lelf -lz -o $(OUTPUT)/$@
+
 
 clean:
 	$(call msg, CLEAN)

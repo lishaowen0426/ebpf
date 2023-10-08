@@ -1,17 +1,24 @@
-#include <linux/bpf.h>
+#include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
+#include <bpf/bpf_tracing.h>
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
-int my_pid = 0;
 
-SEC("tp/syscalls/sys_enter_write")
-int handle_tp(void *ctx){
-    int pid = bpf_get_current_pid_tgid() >> 32;
-    if(pid != my_pid)
-        return 0;
+
+
+SEC("raw_tracepoint/sys_enter")
+int handle_syscalls(struct bpf_raw_tracepoint_args *ctx){
+
+    unsigned long syscall_id = ctx->args[1]; 
+    volatile struct user_pt_regs *regs;
+    regs = (struct user_pt_regs*)ctx->args[0];
+
+    unsigned long syscall_no;
+    bpf_probe_read_kernel(&syscall_no, sizeof(syscall_no), regs->regs + 8 );
+
     
-    bpf_printk("BPF triggered from PID %d.\n", pid);
+    bpf_printk("syscall %d is issued. syscallno is %d\n", syscall_id, syscall_no);
     
     return 0;
 }
