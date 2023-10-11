@@ -4,7 +4,7 @@
 #include <bpf/libbpf.h>
 #include <linux/bpf.h>
 
-static const char *default_filename = ".output/demo.bpf.o";
+static const char *default_filename = "demo.bpf.o";
 
 static int load_and_attach(const char* filename){
     struct bpf_object* obj = NULL;
