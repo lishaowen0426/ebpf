@@ -2,3 +2,4 @@ install/
 vmlinux.h
 .output/
 .vscode/
+/docker/images/

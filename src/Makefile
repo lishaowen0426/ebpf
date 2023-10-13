@@ -72,7 +72,7 @@ $(OUTPUT)/%.skel.h: $(OUTPUT)/%.bpf.o | $(OUTPUT)
 # Build loader
 loader: loader.c $(LIBBPF_OBJ) | $(OUTPUT)
 	$(call msg,LOADER,$@)
-	$(Q)$(CC) $(CFLAGS) $< -L$(dir $(LIBBPF_OBJ)) -lbpf  -lelf -lz -o $(OUTPUT)/$@
+	$(Q)$(CC) $(CFLAGS) $< $(INCLUDES) $(CLANG_BPF_SYS_INCLUDES) -L$(dir $(LIBBPF_OBJ)) -lbpf  -lelf -lz -o $(OUTPUT)/$@
 
 
 clean:

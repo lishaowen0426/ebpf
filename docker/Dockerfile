@@ -1,9 +1,7 @@
 FROM debian
 
 RUN apt update
-RUN apt install -y libelf-dev
+RUN apt install -y libelf-dev vim procps
 
 
-COPY src/.output/demo.bpf.o /
-COPY src/.output/loader /
-
+CMD bash
