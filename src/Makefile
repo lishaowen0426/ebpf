@@ -61,7 +61,6 @@ $(OUTPUT)/%.bpf.o: %.bpf.c $(LIBBPF_OBJ) $(wildcard %.h) $(VMLINUX) | $(OUTPUT)
 		     $(INCLUDES) $(CLANG_BPF_SYS_INCLUDES)		      \
 		     -c $(filter %.c,$^) -o $@
 	$(Q)$(LLVM_STRIP) -g $@
-#	$(Q)$(BPFTOOL) gen skeleton $@ > $(patsubst %.bpf.o,%.skel.h,$@)
 
 .PHONY: $(APPS)
 $(APPS): %: $(OUTPUT)/%.bpf.o $(LIBBPF_OBJ) | $(OUTPUT)
