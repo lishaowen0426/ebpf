@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/src/.output/",
+                "${workspaceFolder}/lib/libbpf/include/uapi/",
+                "${workspaceFolder}/src/"
+            ],
+            "intelliSenseMode": "${default}",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17"
+        }
+    ],
+    "version": 4
+}

@@ -1,9 +1,10 @@
-OUTPUT := .output
+ROOT := $(shell pwd)
+OUTPUT := $(ROOT)/.output
 CLANG := clang-17
 CC := gcc
 LLVM_STRIP := llvm-strip-17
 LIBBPF_SRC := $(abspath ../lib/libbpf/src)
-LIBBPF_OBJ := $(abspath $(OUTPUT)/libbpf/libbpf.a)
+LIBBPF_OBJ := $(OUTPUT)/libbpf.a
 BPFTOOL := bpftool
 ARCH ?= $(shell uname -m | sed 's/x86_64/x86/' \
 			 | sed 's/arm.*/arm/' \
@@ -36,19 +37,22 @@ else
 	MAKEFLAGS += --no-print-directory
 endif
 
-$(OUTPUT) $(OUTPUT)/libbpf:
+$(OUTPUT):
 	$(call msg,MKDIR,$@)
 	$(Q)mkdir -p $@
 
 
 # Build libbpf
-$(LIBBPF_OBJ): $(wildcard $(LIBBPF_SRC)/*.[ch] $(LIBBPF_SRC)/Makefile) | $(OUTPUT)/libbpf
+$(LIBBPF_OBJ): $(wildcard $(LIBBPF_SRC)/*.[ch] $(LIBBPF_SRC)/Makefile) 
 	$(call msg,LIB,$@)
 	$(Q)$(MAKE) -C $(LIBBPF_SRC) BUILD_STATIC_ONLY=1		      \
-		    OBJDIR=$(dir $@)/libbpf DESTDIR=$(dir $@)		      \
+		    OBJDIR=$(OUTPUT)/build DESTDIR=$(OUTPUT)		      \
 		    INCLUDEDIR= LIBDIR= UAPIDIR=			      \
 		    install
 
+# Generate vmlinux
+$(VMLINUX): 
+	$(BPFTOOL) btf dump file /sys/kernel/btf/vmlinux format c > $@
 
 # Build BPF code
 $(OUTPUT)/%.bpf.o: %.bpf.c $(LIBBPF_OBJ) $(wildcard %.h) $(VMLINUX) | $(OUTPUT) 
@@ -63,10 +67,7 @@ $(OUTPUT)/%.bpf.o: %.bpf.c $(LIBBPF_OBJ) $(wildcard %.h) $(VMLINUX) | $(OUTPUT)
 $(APPS): %: $(OUTPUT)/%.bpf.o $(LIBBPF_OBJ) | $(OUTPUT)
 	$(call msg,BINARY,$@)
 
-# Generate BPF skeletons
-$(OUTPUT)/%.skel.h: $(OUTPUT)/%.bpf.o | $(OUTPUT) 
-	$(call msg,GEN-SKEL,$@)
-	$(Q)$(BPFTOOL) gen skeleton $< > $@
+
 
 
 # Build loader

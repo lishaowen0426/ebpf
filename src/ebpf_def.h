@@ -1,7 +1,6 @@
 #ifndef EBPF_DEF_HEADER
 #define EBPF_DEF_HEADER
 
-#include <linux/types.h>
 
 typedef __u32 u32;
 
